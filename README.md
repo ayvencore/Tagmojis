@@ -24,7 +24,13 @@ A SillyTavern extension that extends the built-in tag system with optional emoji
 Install it as a third-party SillyTavern extension, or copy the extension folder into your SillyTavern extensions directory:
 
 ```text
-public/scripts/extensions/third-party/Tagmojis
+https://github.com/ayvencore/Tagmojis
+```
+
+## Fully Compatible with Another Character Library
+
+```text
+https://github.com/ayvencore/Sillytavern-Another-Character-Library
 ```
 
 ## Notes
