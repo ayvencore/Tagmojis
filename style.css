@@ -1,0 +1,296 @@
+.tagmojis-prefix,
+.tagmojis-preview-emoji,
+.tagmojis-result-emoji {
+    --tagmojis-size: 1.15em;
+    display: inline-block;
+    width: var(--tagmojis-size);
+    height: var(--tagmojis-size);
+    flex: 0 0 auto;
+    vertical-align: -0.2em;
+    background-image: var(--tagmojis-sheet-url);
+    background-repeat: no-repeat;
+    background-size:
+        calc(var(--tagmojis-sheet-cols, 1) * var(--tagmojis-size))
+        calc(var(--tagmojis-sheet-rows, 1) * var(--tagmojis-size));
+    background-position:
+        calc(var(--tagmojis-x, 0) * -1 * var(--tagmojis-size))
+        calc(var(--tagmojis-y, 0) * -1 * var(--tagmojis-size));
+}
+
+.tagmojis-prefix + .tagmojis-prefix-space {
+    display: inline-block;
+    width: 0.32em;
+}
+
+.tag:has(> .tagmojis-prefix) {
+    gap: 0.28rem;
+}
+
+.tag:has(> .tagmojis-prefix) .tagmojis-prefix-space {
+    display: none;
+}
+
+.tagmojis-prefix--native,
+.tagmojis-preview-emoji--native,
+.tagmojis-result-emoji--native {
+    background-image: none;
+    width: auto;
+    min-width: var(--tagmojis-size);
+    height: auto;
+    text-align: center;
+    vertical-align: baseline;
+}
+
+.tagmojis-field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 13rem;
+    margin-left: 0.65rem;
+}
+
+.tagmojis-field[data-tagmojis-mode="create"] {
+    margin-left: 0;
+    margin-top: 0.75rem;
+}
+
+.tagmojis-field[data-tagmojis-mode="edit"] {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    margin-left: 0.15rem;
+    margin-right: 0.15rem;
+    flex: 0 0 auto;
+}
+
+.tagmojis-field[data-tagmojis-mode="edit"] .tagmojis-label,
+.tagmojis-field[data-tagmojis-mode="edit"] .tagmojis-clear,
+.tagmojis-field[data-tagmojis-mode="edit"] .tagmojis-preview-chip {
+    display: none;
+}
+
+.tagmojis-field[data-tagmojis-mode="edit"] .tagmojis-control-row {
+    gap: 0;
+    flex-wrap: nowrap;
+}
+
+.tagmojis-field[data-tagmojis-mode="edit"] .tagmojis-trigger {
+    min-width: 2.1rem;
+    width: 2.1rem;
+    height: 2.1rem;
+    justify-content: center;
+    padding: 0.3rem;
+    border-radius: 8px;
+}
+
+.tagmojis-field[data-tagmojis-mode="edit"] .tagmojis-trigger-label {
+    display: none;
+}
+
+.tagmojis-label {
+    font-size: 0.75rem;
+    opacity: 0.78;
+}
+
+.tagmojis-control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.tagmojis-trigger,
+.tagmojis-clear,
+.tagmojis-result {
+    border: 1px solid color-mix(in srgb, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 82%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, rgba(24, 24, 28, 0.92)) 90%, rgba(255, 255, 255, 0.08));
+    color: inherit;
+}
+
+.tagmojis-trigger,
+.tagmojis-clear {
+    min-height: 2.2rem;
+    padding: 0.45rem 0.7rem;
+}
+
+.tagmojis-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 8.75rem;
+}
+
+.tagmojis-trigger > * {
+    pointer-events: none;
+}
+
+.tagmojis-trigger-label {
+    white-space: nowrap;
+}
+
+.tagmojis-clear {
+    cursor: pointer;
+}
+
+.tagmojis-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5000;
+    width: min(32.5rem, calc(100vw - 24px));
+    display: none;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.65rem;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--SmartThemeQuoteColor, #e18a24) 18%, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.2)) 82%);
+    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, rgba(20, 20, 24, 0.96)) 95%, rgba(255, 255, 255, 0.05));
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(16px);
+}
+
+.tagmojis-panel.is-open {
+    display: flex;
+}
+
+.tagmojis-categories {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0.1rem;
+}
+
+.tagmojis-category {
+    border: 1px solid color-mix(in srgb, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 82%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, rgba(24, 24, 28, 0.92)) 90%, rgba(255, 255, 255, 0.08));
+    color: inherit;
+    font-size: 0.78rem;
+    padding: 0.32rem 0.6rem;
+    cursor: pointer;
+}
+
+.tagmojis-category.is-selected,
+.tagmojis-category:hover,
+.tagmojis-category:focus-visible {
+    border-color: color-mix(in srgb, var(--SmartThemeQuoteColor, #e18a24) 44%, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 56%);
+    background: color-mix(in srgb, var(--SmartThemeQuoteColor, #e18a24) 14%, var(--SmartThemeBlurTintColor, rgba(24, 24, 28, 0.96)) 86%);
+}
+
+.tagmojis-search {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 86%, transparent);
+    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, rgba(18, 18, 22, 0.96)) 92%, rgba(255, 255, 255, 0.06));
+    color: inherit;
+    padding: 0.58rem 0.72rem;
+    box-sizing: border-box;
+}
+
+.tagmojis-panel-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.tagmojis-panel-remove {
+    border: 1px solid color-mix(in srgb, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 82%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, rgba(160, 40, 40, 0.2) 80%, rgba(255, 255, 255, 0.03));
+    color: inherit;
+    padding: 0.34rem 0.7rem;
+    cursor: pointer;
+}
+
+.tagmojis-panel-remove:hover,
+.tagmojis-panel-remove:focus-visible {
+    border-color: color-mix(in srgb, rgba(210, 70, 70, 0.65) 60%, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 40%);
+    background: color-mix(in srgb, rgba(170, 45, 45, 0.32) 82%, rgba(255, 255, 255, 0.04));
+}
+
+.tagmojis-panel-remove.is-disabled,
+.tagmojis-panel-remove:disabled {
+    opacity: 0.48;
+    cursor: default;
+}
+
+.tagmojis-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: 0.4rem;
+    max-height: min(26rem, 52vh);
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.tagmojis-result {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.55rem;
+    cursor: pointer;
+    text-align: left;
+}
+
+.tagmojis-result:hover,
+.tagmojis-result:focus-visible,
+.tagmojis-trigger:hover,
+.tagmojis-clear:hover {
+    border-color: color-mix(in srgb, var(--SmartThemeQuoteColor, #e18a24) 44%, var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.18)) 56%);
+    background: color-mix(in srgb, var(--SmartThemeQuoteColor, #e18a24) 10%, var(--SmartThemeBlurTintColor, rgba(24, 24, 28, 0.96)) 90%);
+}
+
+.tagmojis-result-name {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tagmojis-result-title {
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tagmojis-result-meta {
+    font-size: 0.72rem;
+    opacity: 0.7;
+}
+
+.tagmojis-empty {
+    font-size: 0.82rem;
+    opacity: 0.74;
+    padding: 0.35rem 0.15rem 0.1rem;
+}
+
+.tagmojis-status {
+    font-size: 0.76rem;
+    opacity: 0.72;
+    text-align: right;
+}
+
+.tagmojis-preview-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    border-radius: 999px;
+    padding: 0.3rem 0.58rem;
+    background: color-mix(in srgb, var(--SmartThemeQuoteColor, #e18a24) 12%, transparent);
+    font-size: 0.78rem;
+}
+
+.tagmojis-manager-chip {
+    margin-left: 0.45rem;
+}
+
+.tagmojis-field .tagmojis-preview-chip {
+    align-self: flex-start;
+}
