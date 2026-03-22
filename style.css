@@ -50,11 +50,6 @@
     margin-left: 0.65rem;
 }
 
-.tagmojis-field[data-tagmojis-mode="create"] {
-    margin-left: 0;
-    margin-top: 0.75rem;
-}
-
 .tagmojis-field[data-tagmojis-mode="edit"] {
     display: inline-flex;
     flex-direction: row;

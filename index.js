@@ -19,6 +19,20 @@
         '.tag',
         '.bogus_folder_select',
     ].join(', ');
+    const DISPLAY_CONTAINER_SELECTORS = [
+        '.tags',
+        '.tag_list',
+        '.rm_tag_controls',
+        '.bogus_folder_select',
+        '#tag_view_list',
+    ].join(', ');
+    const TAGMOJIS_OWNED_SELECTOR = [
+        '[data-tagmojis-field]',
+        '.tagmojis-prefix',
+        '.tagmojis-prefix-space',
+        '.tagmojis-preview-chip',
+        '.tagmojis-panel',
+    ].join(', ');
     const EMOJI_BATCH_SIZE = 80;
     let settings = structuredCloneSafe(DEFAULT_SETTINGS);
     const state = {
@@ -30,6 +44,8 @@
         tagByName: new Map(),
         knownTagSignature: '',
         refreshQueued: false,
+        fullRefreshRequested: false,
+        pendingRefreshRoots: new Set(),
         observer: null,
         persistTimer: null,
         activePanel: null,
@@ -322,6 +338,13 @@
         `;
     }
 
+    function isTagmojisOwnedNode(node) {
+        return node instanceof HTMLElement && (
+            node.matches(TAGMOJIS_OWNED_SELECTOR) ||
+            Boolean(node.closest(TAGMOJIS_OWNED_SELECTOR))
+        );
+    }
+
     function getEmojiCategories() {
         return [...new Set(
             state.emojiEntries
@@ -418,6 +441,8 @@
 
     function renderPickerField({ emoji = '', tagName = 'Tag preview', mode = 'edit' } = {}) {
         const normalizedEmoji = normalizeString(emoji);
+        const initialResults = buildEmojiResults('', 'all');
+        const initialVisibleCount = Math.min(EMOJI_BATCH_SIZE, initialResults.length);
         const previewChip = renderPreviewChip(
             normalizedEmoji,
             tagName,
@@ -444,9 +469,9 @@
                         ${renderCategoryFilters('all')}
                     </div>
                     <div class="tagmojis-results" data-role="emoji-results">
-                        ${buildEmojiResults('', 'all').slice(0, EMOJI_BATCH_SIZE).map(renderEmojiResult).join('')}
+                        ${initialResults.slice(0, EMOJI_BATCH_SIZE).map(renderEmojiResult).join('')}
                     </div>
-                    <div class="tagmojis-status" data-role="emoji-status">${renderResultsStatus(Math.min(EMOJI_BATCH_SIZE, buildEmojiResults('', 'all').length), buildEmojiResults('', 'all').length)}</div>
+                    <div class="tagmojis-status" data-role="emoji-status">${renderResultsStatus(initialVisibleCount, initialResults.length)}</div>
                     <div class="tagmojis-empty" data-role="emoji-empty" hidden>No emoji matches that search.</div>
                 </div>
             </div>
@@ -511,16 +536,24 @@
         const meta = getTagMeta(tag.id);
         const existingPrefix = element.querySelector(':scope > .tagmojis-prefix');
         const existingSpacer = element.querySelector(':scope > .tagmojis-prefix-space');
+        const emoji = normalizeString(meta?.emoji);
+        const decorationKey = `${tag.id}:${emoji}`;
 
-        if (!meta?.emoji) {
+        if (!emoji) {
             existingPrefix?.remove();
             existingSpacer?.remove();
+            delete element.dataset.tagmojisDecorated;
             return;
         }
 
-        const entry = getEmojiEntry(meta.emoji);
-        const prefixMarkup = renderEmojiSprite(entry, meta.emoji, 'tagmojis-prefix');
+        if (element.dataset.tagmojisDecorated === decorationKey && existingPrefix) {
+            return;
+        }
+
+        const entry = getEmojiEntry(emoji);
+        const prefixMarkup = renderEmojiSprite(entry, emoji, 'tagmojis-prefix');
         let prefixElement = existingPrefix;
+        element.dataset.tagmojisDecorated = decorationKey;
 
         if (!prefixElement) {
             const template = document.createElement('template');
@@ -559,6 +592,90 @@
         for (const candidate of candidates) {
             decorateTagElement(candidate);
         }
+    }
+
+    function queueRefresh(root = document) {
+        if (root instanceof HTMLElement && root.isConnected && !isTagmojisOwnedNode(root)) {
+            state.pendingRefreshRoots.add(root);
+        } else if (root instanceof Document || root === document) {
+            state.fullRefreshRequested = true;
+        } else if (!root) {
+            state.fullRefreshRequested = true;
+        }
+
+        if (state.refreshQueued) {
+            return;
+        }
+
+        state.refreshQueued = true;
+        window.requestAnimationFrame(() => {
+            state.refreshQueued = false;
+            refreshTagCaches();
+
+            const shouldFullRefresh = state.fullRefreshRequested || !state.pendingRefreshRoots.size;
+            const roots = shouldFullRefresh ? [document] : [...state.pendingRefreshRoots];
+            state.fullRefreshRequested = false;
+            state.pendingRefreshRoots.clear();
+
+            for (const refreshRoot of roots) {
+                if (refreshRoot instanceof HTMLElement && !refreshRoot.isConnected) {
+                    continue;
+                }
+
+                injectManagerFields(refreshRoot instanceof Document ? document : refreshRoot);
+                decorateTags(refreshRoot instanceof Document ? document : refreshRoot);
+            }
+        });
+    }
+
+    function getRefreshRootForNode(node) {
+        if (!(node instanceof HTMLElement) || !node.isConnected || isTagmojisOwnedNode(node)) {
+            return null;
+        }
+
+        const manager = node.closest('#tag_view_list');
+        if (manager instanceof HTMLElement) {
+            return manager;
+        }
+
+        if (node.matches(DISPLAY_SELECTORS) || node.matches(DISPLAY_CONTAINER_SELECTORS)) {
+            return node;
+        }
+
+        const displayContainer = node.closest(DISPLAY_CONTAINER_SELECTORS);
+        if (displayContainer instanceof HTMLElement) {
+            return displayContainer;
+        }
+
+        if (node.querySelector(DISPLAY_SELECTORS) || node.querySelector('.tag_view_item')) {
+            return node;
+        }
+
+        return null;
+    }
+
+    function collectMutationRefreshRoots(records) {
+        const roots = new Set();
+
+        for (const record of records) {
+            const targetRoot = getRefreshRootForNode(record.target);
+            if (targetRoot) {
+                roots.add(targetRoot);
+            }
+
+            for (const node of record.addedNodes) {
+                if (!(node instanceof HTMLElement)) {
+                    continue;
+                }
+
+                const root = getRefreshRootForNode(node);
+                if (root) {
+                    roots.add(root);
+                }
+            }
+        }
+
+        return roots;
     }
 
     function matchTagForManagerRow(row) {
@@ -705,7 +822,9 @@
     }
 
     function injectManagerFields(root = document) {
-        const dialog = root.querySelector('#tag_view_list');
+        const dialog = root instanceof HTMLElement && root.matches('#tag_view_list')
+            ? root
+            : root.querySelector('#tag_view_list');
         if (!(dialog instanceof HTMLElement)) {
             return;
         }
@@ -910,24 +1029,17 @@
         }
     }
 
-    function queueRefresh() {
-        if (state.refreshQueued) {
-            return;
-        }
-
-        state.refreshQueued = true;
-        window.requestAnimationFrame(() => {
-            state.refreshQueued = false;
-            refreshTagCaches();
-            injectManagerFields();
-            decorateTags(document);
-        });
-    }
-
     function observeDom() {
         state.observer?.disconnect();
-        state.observer = new MutationObserver(() => {
-            queueRefresh();
+        state.observer = new MutationObserver((records) => {
+            const roots = collectMutationRefreshRoots(records);
+            if (!roots.size) {
+                return;
+            }
+
+            for (const root of roots) {
+                queueRefresh(root);
+            }
         });
         state.observer.observe(document.body, {
             childList: true,
