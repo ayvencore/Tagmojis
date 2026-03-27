@@ -33,6 +33,10 @@ https://github.com/ayvencore/Tagmojis
 https://github.com/ayvencore/Sillytavern-Another-Character-Library
 ```
 
+## Support Me
+
+Like what I'm doing? Consider supporting me on [Kofi](https://ko-fi.com/ayvencore)
+
 ## Notes
 
 - The extension is designed to preserve SillyTavern's native tag sorting, filtering, and matching behavior.
